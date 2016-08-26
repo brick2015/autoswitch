@@ -8,6 +8,7 @@ class SshInerExcpetion(Exception):
     def __str__(self):
         return "switcher inner error: " + " ".join(self.args)
 
+
 class Ssh(object):
 
     ERROR = 'Error'
@@ -77,20 +78,24 @@ class Ssh(object):
             return ret
 
     def save_config(self):
-        while True:
-            self.ssh.sendline("quit")
-            index = self.expect([self.PROMPT, self.SPROMPT])
-            if index == 0:
-                break
-        self.ssh.sendline("save")
-        index = self.expect("Y/N")
-        self.ssh.sendline("Y")
+        try:
+            while True:
+                self.ssh.sendline("quit")
+                index = self.expect([self.PROMPT, self.SPROMPT])
+                if index == 0:
+                    break
+            self.ssh.sendline("save")
+            index = self.expect("Y/N")
+            self.ssh.sendline("Y")
+        except:
+            pass
 
     def isalive(self):
         return self.ssh and self.ssh.isalive()
 
     def terminate(self):
         if self.isalive():
+            self.save_config()
             self.ssh.terminate()
 
     def __enter__(self):
