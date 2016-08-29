@@ -54,15 +54,23 @@ def operate(cmd, kwargs):
     except Exception as e:
         logger.error(e)
         return
+
     try:
         switcher = kwargs.pop("switcher")
-        with Ssh(switcher, USER, PASSWORD) as ssh:
-            for cmd in cmds.format(**kwargs).splitlines():
-                ssh.run(cmd, raise_exception=True)
+        cmds = cmds.format(**kwargs)
     except KeyError as e:
         logger.error("Imcomplete information for %s command: %s", cmd, e.args[0])
-    except (SwitcherInnerError, ExceptionPexpect) as e:
-        logger.error(e)
+        return
+
+    with Ssh(switcher, USER, PASSWORD) as ssh:
+        for cmd in cmds.splitlines():
+            try:
+                ssh.run(cmd, raise_exception=True)
+            except SwitcherInnerError as e:
+                logger.warning(e)
+            except ExceptionPexpect as e:
+                logger.error(e)
+                break
 
 
 def format_interface(interface):
