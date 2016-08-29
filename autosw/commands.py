@@ -1,3 +1,4 @@
+import re
 import logging
 
 from flask import Flask
@@ -5,7 +6,7 @@ from pexpect import ExceptionPexpect
 
 from .ssh import Ssh, SwitcherInnerError
 
-logger = logging.getLogger("__name__")
+logger = logging.getLogger(__name__)
 
 USER = "backup"
 PASSWORD = "www.51idc.com"
@@ -49,6 +50,11 @@ def operate(cmd, kwargs):
     """
     cmds = OPERATIONS[cmd]
     try:
+        kwargs["interface"] = format_interface(kwargs["interface"])
+    except Exception as e:
+        logger.error(e)
+        return
+    try:
         switcher = kwargs.pop("switcher")
         with Ssh(switcher, USER, PASSWORD) as ssh:
             for cmd in cmds.format(**kwargs).splitlines():
@@ -57,3 +63,17 @@ def operate(cmd, kwargs):
         logger.error("Imcomplete information for %s command: %s", cmd, e.args[0])
     except (SwitcherInnerError, ExceptionPexpect) as e:
         logger.error(e)
+
+
+def format_interface(interface):
+    try:
+        interface_type, interface_num = re.search(r"([A-Za-z]+)(\d+\/\d+\/\d+)", interface).groups()
+    except:
+        raise Exception("cann't format interface %s" % interface)
+    if "XGi" in interface_type:
+        return "XGigabitEthernet" + interface_num
+    if "Gi" in interface_type or "GE" in interface_type or "G" in interface_type:
+        return "GigabitEthernet" + interface_num
+    if "Eth" in interface_type or "E" in interface_type:
+        return "Ethernet" + interface_num
+    raise Exception("cann't format interface %s" % interface)
