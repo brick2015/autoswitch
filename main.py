@@ -1,8 +1,9 @@
 import logging
 
 from flask import Flask
+from pexpect import ExceptionPexpect
 
-from ssh import Ssh
+from ssh import Ssh, SwitcherInnerError
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -51,7 +52,7 @@ def operate(cmd, switcher, **kwargs):
         with Ssh(switcher, USER, PASSWORD) as ssh:
             for cmd in cmds.format(**kwargs).splitlines():
                 ssh.run(cmd, raise_exception=True)
-    except Exception as e:
+    except (SwitcherInnerError, ExceptionPexpect) as e:
         print type(e), e
 
 test_args = {

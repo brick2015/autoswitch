@@ -4,7 +4,7 @@ import pexpect
 logger = logging.getLogger(__name__)
 
 
-class SshInerExcpetion(Exception):
+class SwitcherInnerError(Exception):
     def __str__(self):
         return "switcher inner error: " + " ".join(self.args)
 
@@ -39,7 +39,7 @@ class Ssh(object):
                 _, error = self.send_command('system-view')
                 if not error:
                     break
-            except Exception as e:
+            except pexpect.ExceptionPexpect as e:
                 error = e
         if error:
             self.ssh = None
@@ -60,7 +60,7 @@ class Ssh(object):
                 if index == 0:
                     logger.debug('execute "%s" return error' % (com))
                     self.ssh.expect([self.SPROMPT, self.PROMPT])
-                    return "".join(ret+[self.ERROR]), SshInerExcpetion(com)
+                    return "".join(ret+[self.ERROR]), SwitcherInnerError(com)
                 elif index == 1:
                     self.ssh.send(" ")
                 else:
