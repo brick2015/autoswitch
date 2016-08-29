@@ -31,7 +31,7 @@ class Ssh(object):
             try:
                 self.ssh = pexpect.spawn(ssh_line % (self.user, self.host),
                     timeout=self.timeout)
-                self.ssh.logfile = open(self.host, 'ab')
+                # self.ssh.logfile = open(self.host, 'ab')
                 self.ssh.expect('[pP]assword')
                 self.ssh.sendline(self.password)
                 self.ssh.expect(self.PROMPT)
