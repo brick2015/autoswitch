@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class SwitcherInnerError(Exception):
     def __str__(self):
-        return "switcher inner error: " + " ".join(self.args)
+        return "SwitcherInnerError: " + " ".join(self.args)
 
 
 class Ssh(object):

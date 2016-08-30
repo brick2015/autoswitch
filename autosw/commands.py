@@ -1,10 +1,13 @@
+# coding=utf-8
 import re
 import logging
 
+import requests
 from flask import Flask
 from pexpect import ExceptionPexpect
 
 from .ssh import Ssh, SwitcherInnerError
+from .config import *
 
 logger = logging.getLogger(__name__)
 
@@ -48,40 +51,66 @@ def operate(cmd, kwargs):
     """
     :kwargs: switcher, interface, traffic_policy, public_ip
     """
+    rv = {
+        "command": cmd,
+        "status": "ok",
+        "interface": "",
+        "msg": []
+    }
+
     cmds = OPERATIONS[cmd]
     try:
-        kwargs["interface"] = format_interface(kwargs["interface"])
-    except Exception as e:
-        logger.error(e)
-        return
-
-    try:
+        interface = kwargs["interface"]
+        rv["interface"] = interface
+        kwargs["interface"] = format_interface(interface)
         switcher = kwargs.pop("switcher")
         cmds = cmds.format(**kwargs)
     except KeyError as e:
-        logger.error("Imcomplete information for %s command: %s", cmd, e.args[0])
-        return
+        msg = "Imcomplete information for %s command: %s" % (cmd, e.args[0])
+        rv["msg"].append(msg)
+        rv["status"] = "error"
+        logger.error(msg)
+    except _FormatError as e:
+        rv["msg"].append(str(e))
+        rv["status"] = "error"
+        logger.error(e)
+    else:
+        with Ssh(switcher, USER, PASSWORD) as ssh:
+            for cmd in cmds.splitlines():
+                try:
+                    ssh.run(cmd, raise_exception=True)
+                except SwitcherInnerError as e:
+                    logger.warning(e)
+                    rv["msg"].append(e.args[0] + " 执行失败")
+                except ExceptionPexpect as e:
+                    logger.error(e)
+                    rv["msg"].append(str(e))
+                    rv["status"] = "error"
+                    break
 
-    with Ssh(switcher, USER, PASSWORD) as ssh:
-        for cmd in cmds.splitlines():
-            try:
-                ssh.run(cmd, raise_exception=True)
-            except SwitcherInnerError as e:
-                logger.warning(e)
-            except ExceptionPexpect as e:
-                logger.error(e)
-                break
+    try:
+        logger.info("report status")
+        rv["msg"] = "\n".join(rv["msg"])
+        r = requests.post(CALLBACK, json=rv, timeout=5)
+        if not r.ok:
+           r.raise_for_status()
+    except Exception as e:
+        logger.info("faild report status: %s:", e)
+
+
+class _FormatError(Exception):
+    """interface format error"""
 
 
 def format_interface(interface):
     try:
         interface_type, interface_num = re.search(r"([A-Za-z]+)(\d+\/\d+\/\d+)", interface).groups()
     except:
-        raise Exception("cann't format interface %s" % interface)
+        raise _FormatError("cann't format interface %s" % interface)
     if "XGi" in interface_type:
         return "XGigabitEthernet" + interface_num
     if "Gi" in interface_type or "GE" in interface_type or "G" in interface_type:
         return "GigabitEthernet" + interface_num
     if "Eth" in interface_type or "E" in interface_type:
         return "Ethernet" + interface_num
-    raise Exception("cann't format interface %s" % interface)
+    raise _FormatError("cann't format interface %s" % interface)
