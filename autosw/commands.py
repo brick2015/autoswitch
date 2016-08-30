@@ -11,13 +11,12 @@ from .config import *
 
 logger = logging.getLogger(__name__)
 
-USER = "backup"
-PASSWORD = "www.51idc.com"
-
 OPERATIONS = {}
     
 OPERATIONS["before"] = """\
 interface  {interface}
+undo arp anti-attack check user-bind enable
+undo ip source check user-bind enable
 undo shutdown
 port link-type access
 port default vlan 888
@@ -82,7 +81,7 @@ def operate(cmd, report=True, **kwargs):
                     ssh.run(cmd, raise_exception=True)
                 except SwitcherInnerError as e:
                     logger.warning(e)
-                    rv["msg"].append(e.args[0] + " 执行失败")
+                    rv["msg"].append(e.args[0] + " execute failed")
                 except ExceptionPexpect as e:
                     logger.error(e)
                     rv["msg"].append(str(e))
