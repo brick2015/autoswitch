@@ -26,7 +26,7 @@ def up():
      "public_ip": "xxx"}
     """
     j = request.get_json(force=True)
-    Thread(target=operate, args=("up",j)).start()
+    Thread(target=operate, args=("up", j)).start()
     return "ok"
 
 

@@ -18,6 +18,7 @@ OPERATIONS = {}
     
 OPERATIONS["before"] = """\
 interface  {interface}
+undo shutdown
 port link-type access
 port default vlan 888
 """
