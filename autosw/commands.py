@@ -48,7 +48,7 @@ undo user-bind static ip-address {public_ip} interface {interface}
 """
 
 
-def operate(cmd, kwargs, report=True):
+def operate(cmd, report=True, **kwargs):
     """
     :kwargs: switcher, interface, traffic_policy, public_ip
     """

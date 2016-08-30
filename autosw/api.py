@@ -13,7 +13,7 @@ def before():
     {"switcher": "xxx", "interface": "xxx",}
     """
     j = request.get_json(force=True)
-    rv = operate("before", j, report=False)
+    rv = operate("before", report=False, **j)
     return jsonify(rv)
 
 
@@ -26,7 +26,7 @@ def up():
      "public_ip": "xxx"}
     """
     j = request.get_json(force=True)
-    Thread(target=operate, args=("up", j)).start()
+    Thread(target=operate, args=("up",), kwargs=j).start()
     return "ok"
 
 
@@ -38,5 +38,5 @@ def down():
      "public_ip": "xxx"}
     """
     j = request.get_json(force=True)
-    Thread(target=operate, args=("down", j)).start()
+    Thread(target=operate, args=("down",), kwargs=j).start()
     return "ok"
