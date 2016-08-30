@@ -47,7 +47,7 @@ undo user-bind static ip-address {public_ip} interface {interface}
 """
 
 
-def operate(cmd, kwargs):
+def operate(cmd, kwargs, report=True):
     """
     :kwargs: switcher, interface, traffic_policy, public_ip
     """
@@ -87,15 +87,17 @@ def operate(cmd, kwargs):
                     rv["msg"].append(str(e))
                     rv["status"] = "error"
                     break
-
-    try:
-        logger.info("report status")
-        rv["msg"] = "\n".join(rv["msg"])
-        r = requests.post(CALLBACK, json=rv, timeout=5)
-        if not r.ok:
-           r.raise_for_status()
-    except Exception as e:
-        logger.info("faild report status: %s:", e)
+    rv["msg"] = "\n".join(rv["msg"])
+    if report:
+        try:
+            logger.info("report status")
+            r = requests.post(CALLBACK, json=rv, timeout=5)
+            if not r.ok:
+                r.raise_for_status()
+        except Exception as e:
+            logger.info("faild report status: %s:", e)
+    else:
+        return rv
 
 
 class _FormatError(Exception):

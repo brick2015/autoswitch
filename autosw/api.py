@@ -1,6 +1,6 @@
 from threading import Thread
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 from .commands import operate
 
@@ -13,8 +13,8 @@ def before():
     {"switcher": "xxx", "interface": "xxx",}
     """
     j = request.get_json(force=True)
-    Thread(target=operate, args=("before", j)).start()
-    return "ok"
+    rv = operate("before", j, report=False)
+    return jsonify(rv)
 
 
 @app.route("/up", methods=["POST"])
