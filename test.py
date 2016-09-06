@@ -1,6 +1,7 @@
 import json
 from autosw import app
-from autosw.commands import format_interface
+from autosw.commands import format_interface, get_mac_addr, \
+        is_description
 
 test_args = {
     "switcher": "10.188.0.6",
@@ -38,9 +39,24 @@ def test_interface_format():
     assert format_interface("HL-C04(1-1)-00300-G0/0/1") == "GigabitEthernet0/0/1"
 
 
+def test_get_mac_addr():
+    # rv = get_mac_addr("10.188.0.6", "Ethernet0/0/17")
+    # assert rv == ""
+    rv = get_mac_addr("10.188.0.6", "GigabitEthernet0/0/1")
+    print rv
+    assert len(rv) == len("aa:aa:aa:aa:aa:aa")
+
+
+def test_is_description():
+    rv = is_description("10.188.0.6", "GigabitEthernet0/0/1")
+    assert rv
+
+
 if __name__ == "__main__":
-    test_incomplete_info()
-    test_interface_format()
-    test_before()
+    # test_incomplete_info()
+    # test_interface_format()
+    # test_before()
     # test_up()
     # test_down()
+    # test_get_mac_addr()
+    test_is_description()

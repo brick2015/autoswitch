@@ -70,7 +70,7 @@ class Ssh(object):
                 ret.append(self.ssh.before)
                 return "".join(ret), e
 
-    def run(self, cmd, raise_exception=False):
+    def run(self, cmd, raise_exception=True):
         ret, error = self.send_command(cmd)
         if raise_exception and error:
             raise error
@@ -81,14 +81,14 @@ class Ssh(object):
         try:
             while True:
                 self.ssh.sendline("quit")
-                index = self.expect([self.PROMPT, self.SPROMPT])
+                index = self.ssh.expect([self.PROMPT, self.SPROMPT])
                 if index == 0:
                     break
             self.ssh.sendline("save")
-            index = self.expect("Y/N")
+            index = self.ssh.expect("Y/N")
             self.ssh.sendline("Y")
-        except:
-            pass
+        except Exception as e:
+            logger.warning("cann't save config: %s", e)
 
     def isalive(self):
         return self.ssh and self.ssh.isalive()

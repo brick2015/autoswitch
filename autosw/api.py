@@ -2,7 +2,7 @@ from threading import Thread
 
 from flask import Flask, request, jsonify
 
-from .commands import operate
+from .commands import operate, get_mac_addr
 
 app = Flask(__name__)
 
@@ -40,3 +40,31 @@ def down():
     j = request.get_json(force=True)
     Thread(target=operate, args=("down",), kwargs=j).start()
     return "ok"
+
+
+@app.route("/mac", methods=["POST"])
+def mac():
+    """
+    {"switcher": "xxx", 
+     "interface": "xxx"}
+    """
+    j = request.get_json(force=True)
+    mac_addr = get_mac_addr(j["switcher"], j["interface"])
+    if mac_addr:
+        return jsonify(status="ok", mac=mac_addr)
+    else:
+        return jsonify(status="error", mac=mac_addr)
+
+
+@app.route("/description", methods=["POST"])
+def description():
+    """
+    {"switcher": "xxx", 
+     "interface": "xxx"}
+    """
+    j = request.get_json(force=True)
+    ready = is_description(j["switcher"], j["interface"])
+    if ready:
+        return jsonify(status="ok")
+    else:
+        return jsonify(status="error")

@@ -116,3 +116,45 @@ def format_interface(interface):
     if "Eth" in interface_type or "E" in interface_type:
         return "Ethernet" + interface_num
     raise _FormatError("cann't format interface %s" % interface)
+
+
+def get_mac_addr(switcher, interface):
+    try:
+        interface = format_interface(interface)
+    except _FormatError:
+        logger.error("get_mac_addr for %s : %s", interface, e)
+        return "" 
+    cmd = "display mac-address dynamic {}"
+    with Ssh(switcher, USER, PASSWORD) as ssh:
+        try:
+            rv = ssh.run(cmd.format(interface))
+        except (SwitcherInnerError, ExceptionPexpect) as e:
+            logger.error("get_mac_addr for %s : %s", interface, e)
+            return ""
+        r = re.findall(r"\w{4}-\w{4}-\w{4}", rv)
+        if r and len(r) == 1:
+            mac = r.pop().replace("-", "")
+            mac = ":".join([mac[i:i+2] for i in range(0, len(mac), 2)])
+            return mac
+        else:
+            return ""
+
+
+def is_description(switcher, interface):
+    PATTERN = "NULL_$$$$&&&&"
+    try:
+        interface = format_interface(interface)
+    except _FormatError:
+        logger.error("get_mac_addr for %s : %s", interface, e)
+        return False 
+
+    cmds = "interface {}\n" \
+            "display this"
+    with Ssh(switcher, USER, PASSWORD) as ssh:
+        try:
+            for cmd in cmds.splitlines():
+                rv = ssh.run(cmd.format(interface))
+        except (SwitcherInnerError, ExceptionPexpect) as e:
+            logger.error("is_description for %s : %s", interface, e)
+            return False
+    return PATTERN in rv
