@@ -13,13 +13,18 @@ logger = logging.getLogger(__name__)
 
 OPERATIONS = {}
     
-OPERATIONS["before"] = """\
+OPERATIONS["vlan_up"] = """\
 interface  {interface}
 undo arp anti-attack check user-bind enable
 undo ip source check user-bind enable
 undo shutdown
 port link-type access
 port default vlan 888
+"""
+
+OPERATIONS["vlan_down"] = """\
+interface  {interface}
+undo port default vlan
 """
 
 OPERATIONS["up"] = """\
@@ -133,10 +138,9 @@ def get_mac_addr(switcher, interface):
             return ""
         r = re.findall(r"\w{4}-\w{4}-\w{4}", rv)
         if r and len(r) == 1:
-            mac = r.pop().replace("-", "")
-            mac = ":".join([mac[i:i+2] for i in range(0, len(mac), 2)])
-            return mac
+            return r.pop()
         else:
+            logger.warning("get_mac_add failed: %s", r)
             return ""
 
 

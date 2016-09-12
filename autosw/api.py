@@ -2,19 +2,29 @@ from threading import Thread
 
 from flask import Flask, request, jsonify
 
-from .commands import operate, get_mac_addr
+from .commands import operate, get_mac_addr, is_description
 
 app = Flask(__name__)
 
 
-@app.route("/before", methods=["POST"])
-def before():
+@app.route("/vlan_up", methods=["POST"])
+def vlan_up():
     """
     {"switcher": "xxx", "interface": "xxx",}
     """
     j = request.get_json(force=True)
-    rv = operate("before", report=False, **j)
+    rv = operate("vlan_up", report=False, **j)
     return jsonify(rv)
+
+
+@app.route("/vlan_down", methods=["POST"])
+def vlan_down():
+    """
+    {"switcher": "xxx", "interface": "xxx",}
+    """
+    j = request.get_json(force=True)
+    Thread(target=operate, args=("vlan_down", False), kwargs=j).start()
+    return "ok"
 
 
 @app.route("/up", methods=["POST"])
