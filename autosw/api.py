@@ -50,8 +50,24 @@ def down():
     j = request.get_json(force=True)
     Thread(target=operate, args=("down",), kwargs=j).start()
     return "ok"
-
-
+@app.route("/if_up", methods=["POST"])
+def if_up():
+    """
+    {"switcher": "xxx",
+     "interface": "xxx"}
+    """
+    j = request.get_json(force=True)
+    Thread(target=operate, args=("if_up",), kwargs=j).start()
+    return "ok"
+@app.route("/if_down", methods=["POST"])
+def if_down():
+    """
+    {"switcher": "xxx",
+     "interface": "xxx"}
+    """
+    j = request.get_json(force=True)
+    Thread(target=operate, args=("if_down",), kwargs=j).start()
+    return "ok"
 @app.route("/mac", methods=["POST"])
 def mac():
     """
@@ -78,3 +94,16 @@ def description():
         return jsonify(status="ok")
     else:
         return jsonify(status="error")
+@app.route("/speed_limits", methods=["POST"])
+def speed_limits():
+    """
+    {"switcher": "xxx",
+     "interface": "xxx",
+     "traffic_policy": "xxx"}
+    """
+    j = request.get_json(force=True)
+    Thread(target=operate, args=("speed_limits",), kwargs=j).start()
+    return "ok"
+
+
+

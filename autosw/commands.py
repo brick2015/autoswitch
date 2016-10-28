@@ -50,6 +50,19 @@ undo arp anti-attack check user-bind enable
 undo ip source check user-bind enable
 undo user-bind static ip-address {public_ip} interface {interface}
 """
+OPERATIONS["if_up"] = """\
+interface  {interface}
+undo shutdown
+"""
+OPERATIONS["if_down"] = """\
+interface  {interface}
+shutdown
+"""
+OPERATIONS["speed_limits"] = """\
+interface  {interface}
+undo traffic-policy inbound
+traffic-policy {traffic_policy} inbound
+"""
 
 
 def operate(cmd, report=True, **kwargs):
